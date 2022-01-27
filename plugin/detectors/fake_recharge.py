@@ -13,7 +13,7 @@ class FakeRecharge(AbstractDetector):
     IMPACT = DetectorClassification.HIGH
     CONFIDENCE = DetectorClassification.LOW
 
-    WIKI = "https://github.com/crytic/slither/wiki/Detector-Documentation#unindexed-erc20-event-parameters"
+    WIKI = "https://github.com/sol-scan/slither-plugin/wiki/Detector-Documentation#ERC20%E4%BB%A3%E5%B8%81%E8%BD%AC%E8%B4%A6%E5%A4%B1%E8%B4%A5%E4%BD%86%E4%BA%A4%E6%98%93%E6%88%90%E5%8A%9F"
 
     WIKI_TITLE = "ERC20代币转账失败但交易成功"
     WIKI_DESCRIPTION = "ERC20代币transfer时，会返回bool，若用户在转账失败时，未让交易失败，而是返回false，则具有假充值的风险"
