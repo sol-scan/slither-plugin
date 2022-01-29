@@ -1,6 +1,7 @@
 from slither.detectors.abstract_detector import AbstractDetector, DetectorClassification
 from slither.core.declarations.function_contract import FunctionContract
-from slither.slithir.operations import Return
+from slither.slithir.operations import Return, InternalCall
+from slither.slithir.variables.constant import Constant
 
 
 class FakeRecharge(AbstractDetector):
@@ -50,12 +51,29 @@ contract ERC20FackRecharge {
                 if f.signature_str == 'transfer(address,uint256) returns(bool)':
                     targets.append(f)
         for t in targets:
-            f: FunctionContract = t
-            for n in f.nodes:
-                for ir in n.irs:
-                    if isinstance(ir, Return) and str(n.expression) == 'false':
-                        info = self.generate_result(
-                            ["return ", n, "maybe fake recharge\n"])
-                        results.append(info)
+            ir = self.check_function(t)
+            if ir:
+                info = self.generate_result(
+                    ['return ',ir.node, "maybe fake recharge\n"])
+                results.append(info)
 
         return results
+
+    def check_function(self,f:FunctionContract):
+        intercall_irs = []
+        for n in f.nodes:
+            for ir in n.irs:
+                if isinstance(ir, InternalCall):
+                    intercall_irs.append(ir)
+                if isinstance(ir, Return):
+                    ret_value = ir.values[0]
+                    # print(type(ret_value),ret_value)
+                    if type(ret_value) == Constant:                    
+                        if ret_value == False:
+                            return ir
+                    else:
+                        for intercall_ir in intercall_irs:
+                            the_ir:InternalCall = intercall_ir
+                            if the_ir.lvalue == ret_value:
+                                return self.check_function(the_ir.function)
+        return None
